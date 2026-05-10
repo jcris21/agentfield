@@ -6,6 +6,73 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 <!-- changelog:entries -->
 
+## [0.1.83-rc.1] - 2026-05-10
+
+
+### Documentation
+
+- Docs(readme): add harness orchestration announcement banner
+
+Slim ribbon under the hero block linking to the harness docs page. (4b2962c)
+
+- Docs: add community project submission flow (1e381f3)
+
+
+
+### Fixed
+
+- Fix(sdk): treat cancellation as non-retryable in Agent.call sync-fallback path (#566)
+
+* feat(sdk): introduce ExecutionCancelledError for cancelled awaits
+
+When a child execution awaited via `app.call(...)` is cancelled (typically
+via the control plane's `cancel-tree` endpoint), the wait loop now raises
+a dedicated ExecutionCancelledError instead of a plain AgentFieldClientError.
+
+The new exception is intentionally NOT a subclass of AgentFieldClientError
+(the retry-eligible bucket): cancellation is explicit user intent, not a
+transient transport failure. Agent.call's sync-fallback path will be
+updated in a follow-up commit to skip on this exception.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
+* fix(sdk): skip sync fallback on ExecutionCancelledError
+
+Cancellation expresses explicit user intent to stop a running execution.
+The previous behavior was to surface cancellation as a plain
+AgentFieldClientError, which Agent.call's exception handler treated as a
+transient transport failure and silently re-issued via the sync execution
+path. From the user's perspective: they cancelled a run, and the work
+got re-run anyway (creating a brand-new execution against the same
+target). Reproduced on a github-buddy → pr-af.review run that the user
+cancelled mid-flight via the cancel-tree UI; pr-af got invoked again
+seconds later.
+
+Add ExecutionCancelledError to the post-execution skip-list alongside
+ExecutionFailedError and ExecutionTimeoutError. Cancellation is never
+retry-eligible regardless of async_config.fallback_to_sync.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
+* test(sdk): pin cancellation behavior in Agent.call and wait loop
+
+Add a test mirroring test_call_skips_sync_fallback_on_execution_failed_error
+that proves Agent.call does NOT issue a sync-fallback re-execution when the
+awaited child surfaces ExecutionCancelledError. This is the behavior the
+new exception class was introduced to enable.
+
+Also update two pre-existing tests whose expected exception class is now
+ExecutionCancelledError instead of plain AgentFieldClientError:
+
+- test_async_execution.py::test_wait_for_result_ends_pause_on_terminal_while_waiting
+- test_async_execution_manager_final90.py::test_wait_for_result_handles_success_failure_cancel_timeout
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
+---------
+
+Co-authored-by: Claude Opus 4.7 (1M context) <noreply@anthropic.com> (bc0bc36)
+
 ## [0.1.82] - 2026-05-10
 
 ## [0.1.82-rc.1] - 2026-05-10
