@@ -6,6 +6,92 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 <!-- changelog:entries -->
 
+## [0.1.85-rc.5] - 2026-05-23
+
+
+### Added
+
+- Feat(sdk): native OpenRouter audio/video/image routing across Python, TS, Go (#579)
+
+* feat(sdk): native OpenRouter audio/video/image routing across Python, TypeScript, Go
+
+Adds first-class support for OpenRouter's full media surface in all three SDKs
+without changing the public API. The provider now fetches model metadata once
+(cached) and routes audio to either `POST /audio/speech` (TTS-only models like
+hexgrad/kokoro-82m) or `POST /chat/completions` with audio modality (gpt-audio
+family). Image generation drops `"text"` from `modalities` so image-only models
+like x-ai/grok-imagine-image-quality stop 404-ing. Video properly reads the
+current `unsigned_urls` array shape and downloads with Bearer auth (the
+"unsigned" URLs are served from openrouter.ai itself).
+
+DX is unchanged — same `generate_audio/video/image` signatures, same defaults.
+
+Why
+- Kokoro and other TTS-only models live on `/audio/speech`; the old code only
+  knew chat-completions audio modality so they 404'd.
+- `x-ai/grok-imagine-image-quality` is image-only output and rejects
+  `modalities=["image","text"]`; we now send `["image"]` which works for both
+  image-only and dual-output models (verified vs. gemini-2.5-flash-image).
+- Video download was using the wrong field (`unsigned_url` singular) and
+  fetched without auth, so veo-3.1-lite returned 401.
+
+What
+- Python (`sdk/python/agentfield/media_providers.py`,
+  `multimodal_response.py`, `vision.py`):
+  + per-instance metadata cache + `_fetch_model_meta`
+  + new `_openrouter_audio_speech` path with client-side WAV wrapping
+  + `image_urls` reference-image support, `speed`, `extra` passthrough
+  + ImageOutput now handles `data:` URLs
+- TypeScript (`sdk/typescript/src/ai/{MediaProvider,OpenRouterMediaProvider}.ts`):
+  + same routing + WAV wrapping
+  + `seedModelMeta` test helper
+  + fixed camelCase→snake_case for `frame_images` / `input_references`
+  + new `VideoRequest.imageUrl`, `ImageRequest.imageUrls`, `extra` passthrough,
+    expanded `ImageConfig` (strength/style/rgb_colors/...)
+- Go (`sdk/go/ai/{media_provider,openrouter_media}.go`):
+  + same metadata-driven routing
+  + `SeedModelMeta` test helper
+  + reads `unsigned_urls` plural + downloads with Bearer when host is
+    openrouter.ai
+  + new `VideoRequest.ImageURL`, `ImageRequest.ImageURLs`, `Speed`, `Extra`
+    fields; full `ImageConfig` expansion
+
+Tested
+- Smoke-tested end-to-end against openrouter/hexgrad/kokoro-82m (audio),
+  openrouter/x-ai/grok-imagine-image-quality (image), and
+  openrouter/google/veo-3.1-lite (video), including image-to-video with
+  first_frame / last_frame guidance. Outputs saved + verified as RIFF/WAVE,
+  JPEG, and MP4.
+- Python: 107 media tests pass.
+- TypeScript: 596 tests pass.
+- Go: 228 tests pass.
+
+* fix(python-sdk): restore 'to save' suffix in ImageOutput.save error message
+
+The refactor of ImageOutput.save() to delegate to get_bytes() dropped the
+'to save' suffix that test_output_objects_raise_for_missing_data asserts on.
+Restore the upfront check so save() raises 'No image data or URL available
+to save' while get_bytes() still raises 'No image data or URL available'.
+
+* test(sdk): cover new OpenRouter routing branches; fix TS image-parser to read message.images
+
+- Adds Go test file (openrouter_media_routing_test.go) covering
+  fetchModelMeta cache + error paths, /audio/speech success/error,
+  frame_images + input_references + extra translation, and
+  wrapPCM16AsWAV header correctness. Lifts Go patch coverage from
+  64% to >87% on touched lines.
+- Adds TS test file (openrouter_media_routing.test.ts) covering the
+  metadata cache (success / 500 / network exception), generateImage
+  multi-part content + imageConfig snake_case translation, video
+  param translation (imageUrl, frameImages, inputReferences, extra),
+  and /audio/speech speed + extra passthrough. Lifts TS coverage to
+  94.5% lines / 80.1% branches on OpenRouterMediaProvider.ts.
+- Fixes a real bug uncovered while writing tests: the TS image-response
+  parser only read message.content[] (gpt-image-1 style) and dropped
+  images that OpenRouter returns in the dedicated message.images[]
+  array (gemini-*-image, grok-imagine, when content is null). Now
+  parses both shapes. (2dcc803)
+
 ## [0.1.85-rc.4] - 2026-05-20
 
 
