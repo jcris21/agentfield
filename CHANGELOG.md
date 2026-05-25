@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 <!-- changelog:entries -->
 
+## [0.1.85-rc.9] - 2026-05-25
+
+
+### Testing
+
+- Test(python): cover CLI harness log helpers (#574)
+
+* test(python): cover CLI harness log helpers
+
+* Address AgentField harness review coverage
+
+* Fix tee close ownership
+
+---------
+
+Co-authored-by: akmhatey-ai <260399619+akmhatey-ai@users.noreply.github.com>
+Co-authored-by: Abir Abbas <abirabbas1998@gmail.com> (c160e86)
+
 ## [0.1.85-rc.8] - 2026-05-25
 
 
