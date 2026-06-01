@@ -6,6 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 <!-- changelog:entries -->
 
+## [0.1.87-rc.2] - 2026-06-01
+
+
+### Chores
+
+- Chore(deps): bump the npm_and_yarn group across 1 directory with 2 updates (#604)
+
+Bumps the npm_and_yarn group with 2 updates in the /sdk/typescript directory: [@ai-sdk/provider-utils](https://github.com/vercel/ai/tree/HEAD/packages/provider-utils) and [axios](https://github.com/axios/axios).
+
+
+Updates `@ai-sdk/provider-utils` from 3.0.18 to 4.0.27
+- [Release notes](https://github.com/vercel/ai/releases)
+- [Changelog](https://github.com/vercel/ai/blob/@ai-sdk/provider-utils@4.0.27/packages/provider-utils/CHANGELOG.md)
+- [Commits](https://github.com/vercel/ai/commits/@ai-sdk/provider-utils@4.0.27/packages/provider-utils)
+
+Updates `axios` from 1.15.2 to 1.16.0
+- [Release notes](https://github.com/axios/axios/releases)
+- [Changelog](https://github.com/axios/axios/blob/v1.x/CHANGELOG.md)
+- [Commits](https://github.com/axios/axios/compare/v1.15.2...v1.16.0)
+
+---
+updated-dependencies:
+- dependency-name: "@ai-sdk/provider-utils"
+  dependency-version: 4.0.27
+  dependency-type: indirect
+  dependency-group: npm_and_yarn
+- dependency-name: axios
+  dependency-version: 1.16.0
+  dependency-type: direct:production
+  dependency-group: npm_and_yarn
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+Co-authored-by: Abir Abbas <abirabbas1998@gmail.com> (ee7d177)
+
 ## [0.1.87-rc.1] - 2026-06-01
 
 
